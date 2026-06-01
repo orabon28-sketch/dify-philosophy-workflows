@@ -1,0 +1,297 @@
+app:
+  description: 小红书哲学科普大纲
+  icon: 917f631a-da09-4e52-afc2-a949a355ff29
+  icon_background: null
+  icon_type: image
+  mode: workflow
+  name: 小红书
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.8.4@23aed1fa4d2c8015337bd18efa28b3dccf5b7309a83b1501541fb7358518faec
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1780063758469-source-1780064141101-target
+      source: '1780063758469'
+      sourceHandle: source
+      target: '1780064141101'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1780064141101-source-1780064924130-target
+      source: '1780064141101'
+      sourceHandle: source
+      target: '1780064924130'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 1780064924130-source-1780065135765-target
+      source: '1780064924130'
+      sourceHandle: source
+      target: '1780065135765'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 用户输入
+        type: start
+        variables:
+        - default: ''
+          hint: ''
+          label: 主题
+          options: []
+          placeholder: ''
+          required: true
+          type: text-input
+          variable: concept
+        - default: panorama
+          hint: ''
+          label: 图片风格
+          options:
+          - panorama
+          - evolution
+          - narrative
+          placeholder: ''
+          required: true
+          type: select
+          variable: style
+      height: 135
+      id: '1780063758469'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params: {}
+          mode: chat
+          name: gemini-2.5-flash
+          provider: langgenius/gemini/google
+        prompt_template:
+        - id: 56de8c04-b123-48a1-a89c-0e2ca1545a00
+          role: system
+          text: "你是小红书账号「假装在思考」的内容主理人。账号定位：哲学翻译机——用逻辑理清\"怎么想\"，用伦理探讨\"怎么做\"，再拿心理学做实证，揉碎了画给读者看。受众是泛知识兴趣人群。IP\
+            \ 人设：文化博主，陪你一起拆解认知滤镜，找回生活里清晰的坐标。\n\n# 你的任务\n根据用户给定的【主题】和【内容页风格】，产出：①一篇小红书图文笔记的文案；②一组\
+            \ 5 到 10 张卡片的结构化数据；③每张卡片配套的\"画图清单\"。\n\n# 卡片组成\ncards 有序数组：第一张 cover(page=1)，中间若干\
+            \ content，最后一张 back。总数 5 到 10。\n\n# 画图清单 (重要)\n每张卡片都要有三个画图字段（供用户备用，脚本主要靠\
+            \ icon_name 自动配图标）：\n- icon_name: 一个简短的英文词(全小写,用连字符)，描述这张卡的核心意象，如 \"broken-compass\"\
+            、\"flowing-river\"、\"yin-yang\"。脚本会据此自动匹配线性图标。\n- image_prompt_cn: 一句中文描述(给用户看懂)，说明这张图画什么。\n\
+            - image_prompt_en: 一句英文 prompt，格式为：主体描述(简单、居中、单一主体) + 固定风格词。必须以这串风格词结尾：\"\
+            centered, transparent background, PNG, no background, golden glowing outline,\
+            \ minimalist philosophical illustration, no text\"。\n\n# 写作要求\n1. body(正文笔记):\
+            \ 300 到 500 字,口语化,开头抛冲突,中间拆解,结尾留问句或金句。\n2. 【封面钩子 (重点)】cover 卡的 hook 是整个封面最大的字、决定点击率：要一句有冲突感/反常识/戳痛点的提问或断言，15到22字。比如功利主义→\"\
+            多数人的幸福，可以牺牲少数人吗？\"；虚无主义→\"如果一切终将消失，努力还有意义吗？\"。不要平铺直叙，要制造好奇或争议。\n3. tags:\
+            \ 6 到 10 个,每个以#开头。\n3. 【内容页文字 (重点要求)】每张 content 卡要\"言之有物、信息扎实\",不能只写干巴巴的几个词：\n\
+            \   - heading(大标题): 一句话点出本页核心，不超过 14 字。\n   - subheading(副标题): 一句话补充或制造反差，15\
+            \ 到 25 字。\n   - sections(说明块): 2 到 3 个。每个块有 label(小标题,4 到 8 字) 和 text(正文,40\
+            \ 到 70 字,完整的句子,把观点讲透，不要只列词)。\n   - highlight(金句): 一句点睛的话，不超过 16 字。\n4.\
+            \ 准确性优先: 人物、流派、观点必须真实,不编造。\n5. 中立客观。\n\n# 输出格式 (极其重要)\n只输出一个合法 JSON 对象,不要任何解释、前言、不要\
+            \ Markdown 代码块标记。第一个字符是 {，最后一个字符是 }。\n\n结构:\n{\n  \"title\": \"标题,不超过\
+            \ 20 字\",\n  \"body\": \"正文,用\\n换行\",\n  \"tags\": [\"#标签1\"],\n  \"topic\"\
+            : \"主题（务必写清楚流派名，如：道家哲学 / 尼采主义 / 儒家哲学，脚本据此自动配色）\",\n  \"cards\": [\n  \
+            \  {\n      \"page\": 1, \"type\": \"cover\",\n      \"heading\": \"流派/主题名,不超过\
+            \ 8 字（如：功利主义）\",\n      \"hook\": \"一句有冲突感、能勾起好奇的钩子金句,15到22字,最好是反常识的提问或断言（这是封面最大的字，决定点击率）\"\
+            ,\n      \"subheading\": \"副标题,一句话说明这是什么,不超过 22 字\",\n      \"points\"\
+            : [\"本期看点1,不超过12字\", \"本期看点2\", \"本期看点3\"],\n      \"en_sub\": \"英文词\"\
+            , \"accent\": \"强调标签如 老子·庄子\",\n      \"icon_name\": \"yin-yang\",\n \
+            \     \"image_prompt_cn\": \"...\", \"image_prompt_en\": \"...\"\n   \
+            \ },\n    {\n      \"page\": 2, \"type\": \"content\",\n      \"heading\"\
+            : \"本页大标题\", \"subheading\": \"本页副标题，制造反差或补充\",\n      \"en_label\": \"\
+            English Label\",\n      \"sections\": [\n        {\"label\": \"核心观点\"\
+            , \"text\": \"完整的一段说明，40到70字，把这个点讲清楚讲透。\"},\n        {\"label\": \"为什么\"\
+            , \"text\": \"完整的一段说明，40到70字。\"},\n        {\"label\": \"怎么做\", \"text\"\
+            : \"完整的一段说明，40到70字。\"}\n      ],\n      \"highlight\": \"本页金句,不超过 16 字\"\
+            ,\n      \"icon_name\": \"...\", \"image_prompt_cn\": \"...\", \"image_prompt_en\"\
+            : \"...\"\n    },\n    {\n      \"page\": 7, \"type\": \"back\",\n   \
+            \   \"heading\": \"封底主标题\", \"en_heading\": \"English\",\n      \"body\"\
+            : \"封底正文，60到100字的总结\", \"cta\": \"关注我,陪你拆解认知滤镜 →\",\n      \"icon_name\"\
+            : \"...\", \"image_prompt_cn\": \"...\", \"image_prompt_en\": \"...\"\n\
+            \    }\n  ]\n}\n\n# 约束\n- cover 开头、back 结尾,page 连续,总数 5 到 10。\n- cover\
+            \ 卡必须有 hook（封面钩子金句）和 points（3条本期看点，每条不超12字，概括正文要讲的重点）。\n- back 卡的 body\
+            \ 要写 60 到 100 字的完整总结，不要太短。\n- 每张 content 卡必须有 subheading 和 sections（2到3块），每块的\
+            \ text 必须是完整句子，不能是词组。\n- 每张卡片都必须有 icon_name / image_prompt_cn / image_prompt_en。\n\
+            - icon_name 必须是合法英文词(小写英文+连字符)。\n- topic 字段必须写明确的流派名。\n\n# 自检 (不要写出来)\n\
+            - 只有一个 JSON 对象、无多余文字?\n- 每张 content 卡都有 subheading 和 2~3 个 sections，且\
+            \ text 是完整句子?\n- 人物、流派、观点真实?\n- topic 写清楚流派名了?\n"
+        - id: 32f79545-ce8b-494b-bd29-8c1af9f09e3d
+          role: user
+          text: 主题{{#1780063758469.concept#}}：　内容页风格：{{#1780063758469.style#}}
+        selected: false
+        title: LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1780064141101'
+      position:
+        x: 352.4127773581157
+        y: 303
+      positionAbsolute:
+        x: 352.4127773581157
+        y: 303
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json, re\n\ndef main(arg1: str) -> dict:\n    s = arg1.strip()\n\
+          \    # 去掉开头的 ```json 或 ``` 和结尾的 ```\n    s = re.sub(r\"^```(json)?\", \"\
+          \", s).strip()\n    s = re.sub(r\"```$\", \"\", s).strip()\n    # 只截取第一个\
+          \ { 到最后一个 } 之间的内容\n    start = s.find(\"{\")\n    end = s.rfind(\"}\")\n\
+          \    if start != -1 and end != -1:\n        s = s[start:end + 1]\n    #\
+          \ 解析校验，确保是合法 JSON 且字段齐全\n    data = json.loads(s)\n    for k in [\"title\"\
+          , \"body\", \"tags\", \"cards\"]:\n        if k not in data:\n         \
+          \   raise ValueError(\"缺少字段: \" + k)\n\n    # 生成格式化图清单（页码 + 类型 + prompt）\n\
+          \    lines = []\n    for c in data[\"cards\"]:\n        page = c.get(\"\
+          page\", \"?\")\n        ctype = c.get(\"type\", \"\")\n        heading =\
+          \ c.get(\"heading\", \"\")\n        prompt = c.get(\"image_prompt_en\",\
+          \ \"（缺 image_prompt_en）\")\n        lines.append(f\"【第{page}张 · {ctype}】{heading}\\\
+          n{prompt}\\n\")\n    image_list = \"\\n\".join(lines)\n\n    # 输出干净的 JSON\
+          \ 字符串 + 图清单\n    return {\n        \"result\": json.dumps(data, ensure_ascii=False),\n\
+          \        \"image_list\": image_list\n    }"
+        code_language: python3
+        outputs:
+          image_list:
+            children: null
+            type: string
+          result:
+            children: null
+            type: string
+        selected: false
+        title: 代码执行
+        type: code
+        variables:
+        - value_selector:
+          - '1780064141101'
+          - text
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '1780064924130'
+      position:
+        x: 653
+        y: 303
+      positionAbsolute:
+        x: 653
+        y: 303
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1780064924130'
+          - result
+          value_type: string
+          variable: result
+        - value_selector:
+          - '1780064924130'
+          - image_list
+          value_type: string
+          variable: image
+        selected: false
+        title: 输出
+        type: end
+      height: 114
+      id: '1780065135765'
+      position:
+        x: 955
+        y: 303
+      positionAbsolute:
+        x: 955
+        y: 303
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 96.3594657658499
+      y: 163.0767682643007
+      zoom: 1.061738419987606
+  rag_pipeline_variables: []
