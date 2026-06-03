@@ -147,50 +147,77 @@ workflow:
         model:
           completion_params: {}
           mode: chat
-          name: gemini-2.5-flash
+          name: gemini-3.5-flash
           provider: langgenius/gemini/google
         prompt_template:
         - id: 56de8c04-b123-48a1-a89c-0e2ca1545a00
           role: system
           text: "你是小红书账号「假装在思考」的内容主理人。账号定位：哲学翻译机——用逻辑理清\"怎么想\"，用伦理探讨\"怎么做\"，再拿心理学做实证，揉碎了画给读者看。受众是泛知识兴趣人群。IP人设：文化博主，陪你一起拆解认知滤镜，找回生活里清晰的坐标。\n\
-            \n# 你的任务\n根据用户给定的【主题】和【内容页风格】，产出：①一篇小红书图文笔记的文案；②一组 5 到 10 张卡片的结构化数据；③每张卡片配套的\"\
-            画图清单\"(告诉用户这张图该画什么、叫什么文件名)。\n\n# 卡片组成\ncards 有序数组：第一张 cover(page=1)，中间若干\
-            \ content，最后一张 back。总数 5 到 10。\n注意：back(封底)是对【本期主题内容】的收尾升华，不是账号介绍。它的 heading\
+            \n\n# 你的任务\n根据用户给定的【主题】和【内容页风格】，产出：①一篇小红书图文笔记的文案；②一组 6 到 12 张卡片的结构化数据；③每张卡片配套的\"\
+            画图清单\"(告诉用户这张图该画什么、叫什么文件名)。\n\n\n# 核心理念(最重要)\n科普哲学的最终目的是：\"懂的人看了觉得专业到位，不懂的人看了能悟出道理。\"\
+            所以内容既要相对专业(保留流派、人物、关键术语原文，不回避概念)，又要让人读懂(每个术语紧跟一句大白话点破)。根据主题复杂度灵活决定卡片张数(6到12张)：概念多、需要铺垫的主题(如现象学、辩证法)就多用几张content把每层讲清，不要为了凑短而牺牲说透。宁可多一张卡，也不要在一张卡里把复杂概念压缩到说不清。\n\
+            \n\n# 卡片组成\ncards 有序数组：第一张 cover(page=1)，中间若干 content，最后一张 back。总数 6 到\
+            \ 12。\n- cover(封面)：封面有四个文字字段，分工必须严格区分，不要混淆：\n  · hook 字段——画面正中的大字钩子句，一个抛出冲突、勾人往下看的问句或断言(如\"\
+            如果一切终将消失，努力还有意义吗？\"、\"为什么我们总是不自觉地随大流？\")。这是封面最大最显眼的字。\n  · heading 字段——竖条标题旁的\"\
+            流派/主义名\"，必须是与 topic 一致的具体哲学流派或主义名称(如\"虚无主义\"、\"从众主义\"、\"存在主义\")，不超过8字。绝对不要把文案、钩子句、或带引号的短语(如\"\
+            消失的我\")放进 heading。\n  · subheading 字段——一句副标题，对本期的概括(如\"直面意义的虚空，寻找存在的坐标\"\
+            )，不超过22字。\n  · accent 字段——顶部的小标签药丸，填\"流派名\"或\"流派名·代表人物/时代\"(如\"从众主义·阿希\"\
+            、\"尼采·19世纪末\")。绝对不要填\"社会心理学\"\"哲学\"这类宽泛学科名。\n  · points 字段——一个 3 到 4 条的\"\
+            本期看点\"清单，每条不超过 10 字，概括本期各 content 页要讲什么。\n- content(内容页)：\n  · 必须给 subheading\
+            \ 字段——紧跟在本页标题下的一句副标题解释，用一句话点出本页主旨(如标题\"何为存在主义？\"配\"我们先存在，再定义自己，而非相反\"\
+            )，不超过22字。\n  · 必须用 sections 字段（不要用 body）。sections 是一个数组，每页 3 个要点，每个要点是\
+            \ {\"label\": 小标题, \"text\": 解释(55到85字,专业术语+白话双解,把概念讲透)}。\n- back(封底)：是对【本期主题内容】的收尾升华，不是账号介绍。heading\
             \ 是一句呼应本期主题的总结性标题(如主题是虚无主义,可用\"你,是意义的创造者\")；body 是对本期内容的简短收束(2到3句,呼应主题,引发思考)。绝对不要把账号名、账号定位、IP人设写进\
-            \ heading 或 body。账号信息只出现在固定的 cta 里。\n\n# 画图清单(重要)\n每张卡片都要有三个画图字段，供用户拿去\
-            \ AI 文生图工具生成无字插画：\n- icon_name: 一个简短的英文文件名(全小写,用连字符,不含空格和中文)，如 \"sisyphus-rock\"\
-            、\"black-hole\"、\"free-man\"。这是用户保存图片用的文件名,也是脚本匹配图标的依据。\n- image_prompt_cn:\
-            \ 一句中文描述(给用户看懂)，说明这张图画什么。\n- image_prompt_en: 一句英文 prompt(给用户复制到文生图工具)，格式为：主体描述(简单、居中、单一主体)\
+            \ heading 或 body。账号信息只出现在固定的 cta 里。\n  · cta 字段必须固定填写为\"关注我,陪你拆解认知滤镜 →\"\
+            这一句,不超过14字。绝对不要把账号全名「假装在思考」或完整口号塞进 cta(那会让按钮过长难看,完整口号会由程序自动显示在按钮下方)。\n\
+            \n\n# 画图清单(重要)\n每张卡片都要有三个画图字段，供用户拿去 AI 文生图工具生成无字插画：\n- icon_name: 一个简短的英文文件名(全小写,用连字符,不含空格和中文)，如\
+            \ \"sisyphus-rock\"、\"black-hole\"、\"free-man\"。这是用户保存图片用的文件名,也是脚本匹配图标的依据。\n\
+            - image_prompt_cn: 一句中文描述(给用户看懂)，说明这张图画什么。\n- image_prompt_en: 一句英文 prompt(给用户复制到文生图工具)，格式为：主体描述(简单、居中、单一主体)\
             \ + 固定风格词。必须以这串风格词结尾：\"centered, transparent background, PNG, no background,\
             \ golden glowing outline, minimalist philosophical illustration, no text\"\
-            。强调透明背景和无文字。\n\n# 写作要求\n1. body(正文笔记): 300到500字,口语化,开头抛冲突,中间拆解,结尾留问句或金句。\n\
-            2. tags: 6到10个,每个以#开头。\n3. 卡片里的 body(图上文字): 精炼,列要点时每点前加\"◎ \"并换行。\n4.\
-            \ 准确性优先: 人物、流派、观点必须真实,不编造。\n5. 中立客观。\n\n# 输出格式(极其重要)\n只输出一个合法 JSON 对象,不要任何解释、前言、不要\
-            \ Markdown 代码块标记。第一个字符是 {,最后一个字符是 }。\n\n结构:\n{\n  \"title\": \"标题,不超过20字\"\
-            ,\n  \"body\": \"正文,用\\n换行\",\n  \"tags\": [\"#标签1\"],\n  \"topic\": \"\
-            主题\",\n  \"cards\": [\n    {\n      \"page\": 1, \"type\": \"cover\",\n\
-            \      \"heading\": \"封面大标题,不超过12字\", \"subheading\": \"副标题,不超过22字\",\n\
-            \      \"en_sub\": \"英文词\", \"accent\": \"强调标签如 尼采·19世纪末\",\n      \"\
+            。强调透明背景和无文字。\n\n\n# 写作要求\n1. body(正文笔记): 300到500字,口语化,开头抛冲突,中间拆解,结尾留问句或金句。\n\
+            2. tags: 6到10个,每个以#开头。极其重要:tags 是 JSON 字符串数组,每一个标签都必须用英文双引号单独包裹,如 [\"\
+            #标签一\", \"#标签二\", \"#标签三\"]。绝对不能只给第一个加引号、后面的裸写(那会破坏 JSON)。\n3. content\
+            \ 卡片用 sections 数组承载\"小标题+解释\"的两层结构,每页 3 个要点。每个要点：\n   - label: 不超过 6 字的小标题,不要加任何符号(不要◎不要冒号,脚本会自动加圆点和高亮)。\n\
+            \   - text: 解释这个要点,55到85字(复杂概念可到95字)。核心目标是\"内行看着专业、外行看了能懂\"：\n     · 保留关键术语/人名/原文(如\
+            \ epoche 悬置判断、ataraxia 心灵宁静、Cogito ergo sum 我思故我在、剩余价值),让懂的人觉得到位;\n  \
+            \   · 但每出现一个术语,紧跟一句大白话把它点破,让不懂的人也能悟到背后的道理。\n     · 不要写成干巴巴的词条堆砌,要有解释、有因果、把概念讲透。宁可写满三行,也不要因为怕长而说不清。\n\
+            \   另外每个 content 页要给一句 subheading(标题下的副标题),用一句话概括本页,不超过22字。\n4. cover\
+            \ 卡片的 points: 3 到 4 条,每条不超过 10 字,作为本期看点目录。\n5. 准确性优先: 人物、流派、观点必须真实,不编造。\n\
+            6. 中立客观。\n\n\n# 输出格式(极其重要)\n只输出一个合法 JSON 对象,不要任何解释、前言、不要 Markdown 代码块标记。第一个字符是\
+            \ {,最后一个字符是 }。\n\n\n结构:\n{\n  \"title\": \"标题,不超过20字\",\n  \"body\": \"\
+            正文,用\\n换行\",\n  \"tags\": [\"#标签1\"],\n  \"topic\": \"主题\",\n  \"cards\"\
+            : [\n    {\n      \"page\": 1, \"type\": \"cover\",\n      \"hook\": \"\
+            为什么我们总是不自觉地随大流？\",\n      \"heading\": \"从众主义\", \"subheading\": \"直面群体压力，找回独立判断\"\
+            ,\n      \"en_sub\": \"THE CONFORMITY EFFECT\", \"accent\": \"从众主义·阿希\"\
+            ,\n      \"points\": [\"睁眼说瞎话的真相\", \"我们为何随大流\", \"如何找回自我\"],\n      \"\
             icon_name\": \"broken-compass\",\n      \"image_prompt_cn\": \"一个破碎的指南针,象征意义的迷失\"\
             ,\n      \"image_prompt_en\": \"a broken compass, centered, transparent\
             \ background, PNG, no background, golden glowing outline, minimalist philosophical\
             \ illustration, no text\"\n    },\n    {\n      \"page\": 2, \"type\"\
-            : \"content\",\n      \"heading\": \"本页标题\", \"en_label\": \"英文小标\",\n\
-            \      \"body\": \"◎ 要点一\\n◎ 要点二\", \"highlight\": \"本页金句,不超过20字\",\n\
-            \      \"icon_name\": \"...\", \"image_prompt_cn\": \"...\", \"image_prompt_en\"\
-            : \"...\"\n    },\n    {\n      \"page\": 7, \"type\": \"back\",\n   \
-            \   \"heading\": \"呼应本期主题的收尾标题,不超过12字\", \"en_heading\": \"英文\",\n   \
-            \   \"body\": \"对本期主题的简短收束,2到3句,不要写账号介绍\", \"cta\": \"关注我,陪你拆解认知滤镜 →\"\
-            ,\n      \"icon_name\": \"...\", \"image_prompt_cn\": \"...\", \"image_prompt_en\"\
-            : \"...\"\n    }\n  ]\n}\n\n# 约束\n- cover 开头、back 结尾,page 连续,总数 5 到 10。\n\
-            - 每张卡片都必须有 icon_name / image_prompt_cn / image_prompt_en。\n- icon_name\
-            \ 必须是合法文件名(小写英文+连字符)。\n- back 的 heading 和 body 必须围绕本期主题,绝不能是账号名或账号介绍。\n\
-            \n# 自检(不要写出来)\n- 只有一个 JSON 对象、无多余文字?\n- 每张卡片都有三个画图字段?\n- 人物、流派、观点真实?\n\
-            - back 的 heading/body 是否呼应了本期主题,而非账号介绍?"
+            : \"content\",\n      \"heading\": \"本页标题\", \"subheading\": \"紧跟标题的一句副标题解释,点出本页主旨\"\
+            , \"en_label\": \"英文小标\",\n      \"sections\": [\n        {\"label\":\
+            \ \"小标题一\", \"text\": \"解释,55到85字,保留关键术语并紧跟白话点破,把概念讲透。\"},\n        {\"\
+            label\": \"小标题二\", \"text\": \"解释,55到85字,保留关键术语并紧跟白话点破,把概念讲透。\"},\n  \
+            \      {\"label\": \"小标题三\", \"text\": \"解释,55到85字,保留关键术语并紧跟白话点破,把概念讲透。\"\
+            }\n      ],\n      \"highlight\": \"本页金句,不超过20字\",\n      \"icon_name\"\
+            : \"...\", \"image_prompt_cn\": \"...\", \"image_prompt_en\": \"...\"\n\
+            \    },\n    {\n      \"page\": 7, \"type\": \"back\",\n      \"heading\"\
+            : \"呼应本期主题的收尾标题,不超过12字\", \"en_heading\": \"英文\",\n      \"body\": \"\
+            对本期主题的简短收束,2到3句,不要写账号介绍\", \"cta\": \"关注我,陪你拆解认知滤镜 →\",\n      \"icon_name\"\
+            : \"...\", \"image_prompt_cn\": \"...\", \"image_prompt_en\": \"...\"\n\
+            \    }\n  ]\n}\n\n\n# 约束\n- cover 开头、back 结尾,page 连续,总数 6 到 12。\n- 每张卡片都必须有\
+            \ icon_name / image_prompt_cn / image_prompt_en。\n- icon_name 必须是合法文件名(小写英文+连字符)。\n\
+            - cover 必须有 points(3到4条)。\n- content 必须用 sections(每页3个要点),不要再用 body。\n\
+            - back 的 heading 和 body 必须围绕本期主题,绝不能是账号名或账号介绍。\n\n\n# 自检(不要写出来)\n- 只有一个\
+            \ JSON 对象、无多余文字?\n- tags 数组里每个标签都加了双引号吗(不能只给第一个加)?\n- 每张卡片都有三个画图字段?\n\
+            - cover 的 hook 是大字钩子句、heading 是流派名(不是文案短语)、有 points、accent 是具体流派名(不是学科)吗?\n\
+            - content 用的是 sections(每页3个要点、label无符号)而不是 body 吗?\n- 人物、流派、观点真实?\n- back\
+            \ 的 heading/body 是否呼应了本期主题,而非账号介绍?"
         - id: 32f79545-ce8b-494b-bd29-8c1af9f09e3d
           role: user
           text: 主题{{#1780063758469.concept#}}：　内容页风格：{{#1780063758469.style#}}
-        selected: true
+        selected: false
         title: LLM
         type: llm
         vision:
@@ -198,10 +225,10 @@ workflow:
       height: 88
       id: '1780064141101'
       position:
-        x: 352.4127773581157
+        x: 355.6755188355411
         y: 303
       positionAbsolute:
-        x: 352.4127773581157
+        x: 355.6755188355411
         y: 303
       selected: true
       sourcePosition: right
@@ -213,17 +240,56 @@ workflow:
           \    # 去掉开头的 ```json 或 ``` 和结尾的 ```\n    s = re.sub(r\"^```(json)?\", \"\
           \", s).strip()\n    s = re.sub(r\"```$\", \"\", s).strip()\n    # 只截取第一个\
           \ { 到最后一个 } 之间的内容\n    start = s.find(\"{\")\n    end = s.rfind(\"}\")\n\
-          \    if start != -1 and end != -1:\n        s = s[start:end + 1]\n    #\
-          \ 解析校验，确保是合法 JSON 且字段齐全\n    data = json.loads(s)\n    for k in [\"title\"\
-          , \"body\", \"tags\", \"cards\"]:\n        if k not in data:\n         \
-          \   raise ValueError(\"缺少字段: \" + k)\n\n    # 生成格式化图清单（页码 + 类型 + prompt）\n\
-          \    lines = []\n    for c in data[\"cards\"]:\n        page = c.get(\"\
-          page\", \"?\")\n        ctype = c.get(\"type\", \"\")\n        heading =\
-          \ c.get(\"heading\", \"\")\n        prompt = c.get(\"image_prompt_en\",\
-          \ \"（缺 image_prompt_en）\")\n        lines.append(f\"【第{page}张 · {ctype}】{heading}\\\
-          n{prompt}\\n\")\n    image_list = \"\\n\".join(lines)\n\n    # 输出干净的 JSON\
-          \ 字符串 + 图清单\n    return {\n        \"result\": json.dumps(data, ensure_ascii=False),\n\
-          \        \"image_list\": image_list\n    }"
+          \    if start != -1 and end != -1:\n        s = s[start:end + 1]\n\n   \
+          \ # —— JSON 容错修复：LLM 偶尔输出不规范(如 tags 里漏引号)，先尝试直接解析，失败则修复后重试 ——\n    def _repair_json(text):\n\
+          \        # 1) 修复 tags 数组里没加引号的裸标签项\n        def _fix_tags(m):\n        \
+          \    inner = m.group(1)\n            items = [x.strip() for x in inner.split(\"\
+          ,\") if x.strip()]\n            fixed = [json.dumps(it.strip().strip('\"\
+          ').strip(), ensure_ascii=False) for it in items]\n            return '\"\
+          tags\": [' + \", \".join(fixed) + \"]\"\n        text = re.sub(r'\"tags\"\
+          \\s*:\\s*\\[(.*?)\\]', _fix_tags, text, flags=re.S)\n        # 2) 去掉对象/数组结尾多余的逗号(trailing\
+          \ comma)\n        text = re.sub(r\",\\s*([\\]}])\", r\"\\1\", text)\n  \
+          \      # 3) 去掉非法控制字符(未转义的制表符等)\n        text = re.sub(r\"[\\x00-\\x08\\\
+          x0b\\x0c\\x0e-\\x1f]\", \"\", text)\n        return text\n\n    try:\n \
+          \       data = json.loads(s)\n    except json.JSONDecodeError:\n       \
+          \ data = json.loads(_repair_json(s))   # 修复后重试，仍失败则抛出原始报错\n\n    for k in\
+          \ [\"title\", \"body\", \"tags\", \"cards\"]:\n        if k not in data:\n\
+          \            raise ValueError(\"缺少字段: \" + k)\n\n    # —— 新增：版面结构校验，逼模型用新结构（圆点小标题\
+          \ + 看点清单）——\n    for c in data[\"cards\"]:\n        ctype = c.get(\"type\"\
+          , \"\")\n        page = c.get(\"page\", \"?\")\n        # 每张都得有画图三字段\n \
+          \       for f in [\"icon_name\", \"image_prompt_cn\", \"image_prompt_en\"\
+          ]:\n            if not c.get(f):\n                raise ValueError(f\"第{page}张[{ctype}]缺少画图字段:\
+          \ {f}\")\n        if ctype == \"cover\":\n            if not c.get(\"hook\"\
+          ):\n                raise ValueError(f\"第{page}张封面缺少 hook(画面中央的大字钩子句)\"\
+          )\n            head = str(c.get(\"heading\", \"\"))\n            # heading\
+          \ 应是流派名,不该是带引号的文案短语\n            if not head:\n                raise ValueError(f\"\
+          第{page}张封面缺少 heading(流派/主义名)\")\n            if (\"“\" in head) or (\"”\"\
+          \ in head) or ('\"' in head):\n                raise ValueError(f\"第{page}张封面\
+          \ heading='{head}' 像文案短语,应填流派名(如 从众主义)\")\n            pts = c.get(\"points\"\
+          )\n            if not (isinstance(pts, list) and len(pts) >= 3):\n     \
+          \           raise ValueError(f\"第{page}张封面缺少 points(本期看点,需≥3条)\")\n    \
+          \        ac = str(c.get(\"accent\", \"\"))\n            # accent 不该是宽泛学科名\n\
+          \            for bad in [\"社会心理学\", \"心理学\", \"哲学\", \"社会学\", \"伦理学\"]:\n\
+          \                if ac.strip() == bad or ac.strip() in (f\"{bad} · 哲学\"\
+          , f\"{bad}·哲学\"):\n                    raise ValueError(f\"第{page}张封面 accent='{ac}'\
+          \ 是学科名,应填具体流派/主义名(如 从众主义·阿希)\")\n        elif ctype == \"content\":\n  \
+          \          if not c.get(\"subheading\"):\n                raise ValueError(f\"\
+          第{page}张内容页缺少 subheading(标题下的副标题解释)\")\n            secs = c.get(\"sections\"\
+          )\n            if not (isinstance(secs, list) and len(secs) == 3):\n   \
+          \             raise ValueError(f\"第{page}张内容页 sections 必须是3个要点(收到 {secs!r})\"\
+          )\n            for sec in secs:\n                if not sec.get(\"label\"\
+          ) or not sec.get(\"text\"):\n                    raise ValueError(f\"第{page}张内容页某要点缺\
+          \ label 或 text\")\n                # 解释太短往往说不清概念，提示加长（中文按字符数粗算）\n      \
+          \          if len(str(sec.get(\"text\", \"\")).strip()) < 40:\n        \
+          \            raise ValueError(f\"第{page}张内容页要点'{sec.get('label')}'的解释过短(不足40字),复杂概念容易说不清,请讲透\"\
+          )\n\n    # 生成格式化图清单（页码 + 类型 + prompt）\n    lines = []\n    for c in data[\"\
+          cards\"]:\n        page = c.get(\"page\", \"?\")\n        ctype = c.get(\"\
+          type\", \"\")\n        heading = c.get(\"heading\", \"\")\n        prompt\
+          \ = c.get(\"image_prompt_en\", \"（缺 image_prompt_en）\")\n        lines.append(f\"\
+          【第{page}张 · {ctype}】{heading}\\n{prompt}\\n\")\n    image_list = \"\\n\"\
+          .join(lines)\n\n    # 输出干净的 JSON 字符串 + 图清单\n    return {\n        \"result\"\
+          : json.dumps(data, ensure_ascii=False),\n        \"image_list\": image_list\n\
+          \    }\n"
         code_language: python3
         outputs:
           image_list:
@@ -283,7 +349,7 @@ workflow:
       type: custom
       width: 242
     viewport:
-      x: 74.8594657658499
-      y: 85.07676826430071
-      zoom: 1.061738419987606
+      x: -325.1632716029777
+      y: 223.13310615513763
+      zoom: 0.8593524829023956
   rag_pipeline_variables: []
