@@ -1,0 +1,431 @@
+app:
+  description: 联网搜索资料，由 Gemini 整理生成 Markdown 结构，经 Code 节点安全打包后发送到本地 markmap 服务生成思维导图。
+  icon: 🧠
+  icon_background: '#EFF1F5'
+  icon_type: emoji
+  mode: workflow
+  name: 思维导图生成器 v2（联网+本地）
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.8.4@23aed1fa4d2c8015337bd18efa28b3dccf5b7309a83b1501541fb7358518faec
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tavily:0.1.9@b5f436cdc3d8fbbb60535a75e4162ddcc3dd405a81202680f9e124533e093f5f
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods: []
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: tool
+      id: start-search
+      source: '1700000000001'
+      sourceHandle: source
+      target: '1700000000002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: tool
+        targetType: llm
+      id: search-llm
+      source: '1700000000002'
+      sourceHandle: source
+      target: '1700000000003'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: code
+      id: llm-pack
+      source: '1700000000003'
+      sourceHandle: source
+      target: '1700000000007'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: http-request
+      id: pack-http
+      source: '1700000000007'
+      sourceHandle: source
+      target: '1700000000004'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: http-code
+      source: '1700000000004'
+      sourceHandle: source
+      target: '1700000000005'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: end
+      id: code-end
+      source: '1700000000005'
+      sourceHandle: source
+      target: '1700000000006'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: 输入主题与层级深度
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - label: 思维导图主题
+          max_length: 200
+          options: []
+          required: true
+          type: text-input
+          variable: topic
+        - default: '3'
+          label: 层级深度
+          max_length: 48
+          options:
+          - '2'
+          - '3'
+          - '4'
+          required: false
+          type: select
+          variable: depth
+      height: 163
+      id: '1700000000001'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: 联网搜索主题资料（需在工具中授权 Tavily）
+        provider_id: tavily
+        provider_name: tavily
+        provider_type: builtin
+        selected: false
+        title: 联网搜索
+        tool_configurations:
+          include_answer:
+            type: constant
+            value: true
+          include_images:
+            type: constant
+            value: false
+          include_raw_content:
+            type: constant
+            value: false
+          max_results:
+            type: constant
+            value: 5
+          search_depth:
+            type: constant
+            value: basic
+        tool_label: Tavily Search
+        tool_name: tavily_search
+        tool_node_version: '2'
+        tool_parameters:
+          query:
+            type: mixed
+            value: '{{#1700000000001.topic#}}'
+        type: tool
+      height: 236
+      id: '1700000000002'
+      position:
+        x: 380
+        y: 282
+      positionAbsolute:
+        x: 380
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 由 Gemini 把资料整理成 Markdown 思维导图大纲
+        model:
+          completion_params: {}
+          mode: chat
+          name: gemini-3.5-flash
+          provider: langgenius/gemini/google
+        prompt_template:
+        - id: sys-prompt
+          role: system
+          text: '你是思维导图结构专家，擅长把资料梳理成层级分明、措辞精炼的知识树。
+
+
+            【严格输出要求】
+
+            1. 只输出 Markdown 正文，不要任何解释、前后缀，不要用 ```markdown 代码块包裹。
+
+            2. 用 # 表示中心主题（有且仅有一个），## 一级分支，### 二级分支，依次类推，最深到第 {{#1700000000001.depth#}}
+            层标题。
+
+            3. 末级要点用 - 无序列表呈现，简短精炼。
+
+            4. 层级平衡：每个分支建议 3-5 个子项，避免某一支过深或过浅。
+
+            5. 全程使用中文，专有名词可保留原文。
+
+            6. 内容须基于下方搜索资料，去重并提炼，不要照抄整段。'
+        - id: user-prompt
+          role: user
+          text: '主题：{{#1700000000001.topic#}}
+
+
+            【联网搜索资料】
+
+            {{#1700000000002.text#}}
+
+
+            请基于以上资料，围绕主题生成 Markdown 思维导图大纲。'
+        selected: false
+        title: 生成 Markdown 结构
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 132
+      id: '1700000000003'
+      position:
+        x: 680
+        y: 282
+      positionAbsolute:
+        x: 680
+        y: 282
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\ndef main(md: str, title: str) -> dict:\n    body = json.dumps(\n\
+          \        {\"markdown\": md, \"title\": title},\n        ensure_ascii=False\n\
+          \    )\n    return {\"body\": body}\n"
+        code_language: python3
+        desc: 用 json.dumps 安全打包，避免中文/换行/引号破坏 JSON
+        outputs:
+          body:
+            children: null
+            type: string
+        selected: false
+        title: 打包 JSON
+        type: code
+        variables:
+        - value_selector:
+          - '1700000000003'
+          - text
+          variable: md
+        - value_selector:
+          - '1700000000001'
+          - topic
+          variable: title
+      height: 96
+      id: '1700000000007'
+      position:
+        x: 980
+        y: 282
+      positionAbsolute:
+        x: 980
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: body-raw-1
+            key: ''
+            type: text
+            value: '{{#1700000000007.body#}}'
+          type: raw-text
+        desc: 把打包好的 JSON 发送到本地 markmap 服务
+        headers: Content-Type:application/json
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_connect_timeout: 300
+          max_read_timeout: 600
+          max_write_timeout: 600
+          read: 120
+          write: 60
+        title: 调用本地 markmap 服务
+        type: http-request
+        url: http://192.168.1.139:5001/generate
+        variables: []
+      height: 181
+      id: '1700000000004'
+      position:
+        x: 1280
+        y: 282
+      positionAbsolute:
+        x: 1280
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "def main(http_body: str) -> dict:\n    import json\n    try:\n    \
+          \    data = json.loads(http_body)\n    except Exception:\n        return\
+          \ {\n            \"view_url\": \"\",\n            \"file_path\": \"\",\n\
+          \            \"status\": \"解析失败：\" + str(http_body)[:300]\n        }\n \
+          \   return {\n        \"view_url\": data.get(\"view_url\", \"\"),\n    \
+          \    \"file_path\": data.get(\"file_path\", \"\"),\n        \"status\":\
+          \ data.get(\"status\", \"\")\n    }\n"
+        code_language: python3
+        desc: 解析 Flask 返回的 JSON
+        outputs:
+          file_path:
+            children: null
+            type: string
+          status:
+            children: null
+            type: string
+          view_url:
+            children: null
+            type: string
+        selected: false
+        title: 解析返回结果
+        type: code
+        variables:
+        - value_selector:
+          - '1700000000004'
+          - body
+          variable: http_body
+      height: 80
+      id: '1700000000005'
+      position:
+        x: 1580
+        y: 282
+      positionAbsolute:
+        x: 1580
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: 输出思维导图查看链接
+        outputs:
+        - value_selector:
+          - '1700000000005'
+          - view_url
+          variable: view_url
+        - value_selector:
+          - '1700000000005'
+          - file_path
+          variable: file_path
+        - value_selector:
+          - '1700000000003'
+          - text
+          variable: markdown
+        - value_selector:
+          - '1700000000005'
+          - status
+          variable: status
+        selected: false
+        title: 结束
+        type: end
+      height: 194
+      id: '1700000000006'
+      position:
+        x: 1880
+        y: 282
+      positionAbsolute:
+        x: 1880
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -840.7
+      y: 293.20000000000005
+      zoom: 0.7
+  rag_pipeline_variables: []
