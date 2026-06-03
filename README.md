@@ -13,6 +13,7 @@ These workflows are currently actively maintained and deployed in a real-world p
 * **`wechat-article-generator.yml`**: An orchestration pipeline that takes philosophical themes and generates in-depth, structured long-form articles suitable for WeChat Official Accounts.
 * **`xiaohongshu-outline.yml`**: A specialized prompt chain that extracts the core logic of long texts and reorganizes it into punchy, visually-oriented outlines. Perfect for creating slide decks (PPTs) and posters for Xiaohongshu (RED).
 * **`article-polishing.yml`**: A utility workflow designed to refine and elevate the stylistic tone of raw drafts, ensuring consistency in the brand's intellectual voice.
+* **`mind-map-generator.yml`**: An advanced workflow integrating web search and Gemini. It automatically researches complex philosophical topics and structures them into Markdown-based mind maps, utilizing code nodes for secure local deployment.
 
 ## 🛠️ How to Use
 1. Clone or download the `.yml` files from this repository.
