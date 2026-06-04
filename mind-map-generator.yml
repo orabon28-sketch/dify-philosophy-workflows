@@ -1,10 +1,11 @@
 app:
-  description: 联网搜索资料，由 Gemini 整理生成 Markdown 结构，经 Code 节点安全打包后发送到本地 markmap 服务生成思维导图。
+  description: 联网搜索 + Gemini 生成结构平衡 Markdown + 本地 markmap 渲染。输出交互 HTML、PNG、SVG 三种,PNG/SVG
+    保留 markmap 线条样式。
   icon: 🧠
   icon_background: '#EFF1F5'
   icon_type: emoji
   mode: workflow
-  name: 思维导图生成器 v2（联网+本地）
+  name: 思维导图生成器 v5（markmap 出图+下载）
   use_icon_as_answer_icon: false
 dependencies:
 - current_identifier: null
@@ -63,7 +64,6 @@ workflow:
   graph:
     edges:
     - data:
-        isInIteration: false
         sourceType: start
         targetType: tool
       id: start-search
@@ -74,7 +74,6 @@ workflow:
       type: custom
       zIndex: 0
     - data:
-        isInIteration: false
         sourceType: tool
         targetType: llm
       id: search-llm
@@ -85,7 +84,6 @@ workflow:
       type: custom
       zIndex: 0
     - data:
-        isInIteration: false
         sourceType: llm
         targetType: code
       id: llm-pack
@@ -96,7 +94,6 @@ workflow:
       type: custom
       zIndex: 0
     - data:
-        isInIteration: false
         sourceType: code
         targetType: http-request
       id: pack-http
@@ -107,10 +104,9 @@ workflow:
       type: custom
       zIndex: 0
     - data:
-        isInIteration: false
         sourceType: http-request
         targetType: code
-      id: http-code
+      id: http-parse
       source: '1700000000004'
       sourceHandle: source
       target: '1700000000005'
@@ -118,10 +114,9 @@ workflow:
       type: custom
       zIndex: 0
     - data:
-        isInIteration: false
         sourceType: code
         targetType: end
-      id: code-end
+      id: parse-end
       source: '1700000000005'
       sourceHandle: source
       target: '1700000000006'
@@ -165,7 +160,7 @@ workflow:
       type: custom
       width: 242
     - data:
-        desc: 联网搜索主题资料（需在工具中授权 Tavily）
+        desc: 联网搜索主题资料（需授权 Tavily）
         provider_id: tavily
         provider_name: tavily
         provider_type: builtin
@@ -183,10 +178,10 @@ workflow:
             value: false
           max_results:
             type: constant
-            value: 5
+            value: 6
           search_depth:
             type: constant
-            value: basic
+            value: advanced
         tool_label: Tavily Search
         tool_name: tavily_search
         tool_node_version: '2'
@@ -195,7 +190,7 @@ workflow:
             type: mixed
             value: '{{#1700000000001.topic#}}'
         type: tool
-      height: 236
+      height: 220
       id: '1700000000002'
       position:
         x: 380
@@ -212,32 +207,62 @@ workflow:
         context:
           enabled: false
           variable_selector: []
-        desc: 由 Gemini 把资料整理成 Markdown 思维导图大纲
+        desc: Gemini 生成结构平衡、内容精炼的 Markdown
         model:
-          completion_params: {}
+          completion_params:
+            temperature: 0.3
           mode: chat
-          name: gemini-3.5-flash
+          name: gemini-2.5-flash
           provider: langgenius/gemini/google
         prompt_template:
         - id: sys-prompt
           role: system
-          text: '你是思维导图结构专家，擅长把资料梳理成层级分明、措辞精炼的知识树。
+          text: '你是顶级的知识结构梳理专家，擅长把资料整理成干净、平衡、逻辑清晰的思维导图大纲。最终用于 markmap 渲染。
 
 
-            【严格输出要求】
+            【输出格式】
 
-            1. 只输出 Markdown 正文，不要任何解释、前后缀，不要用 ```markdown 代码块包裹。
+            1. 只输出 Markdown，不要任何解释、不要 ```markdown 围栏。
 
-            2. 用 # 表示中心主题（有且仅有一个），## 一级分支，### 二级分支，依次类推，最深到第 {{#1700000000001.depth#}}
-            层标题。
+            2. 用 # 表示中心主题（有且仅一个），## 一级分支，### 二级，#### 三级，最深到第 {{#1700000000001.depth#}}
+            层。末级要点用 - 列表。
 
-            3. 末级要点用 - 无序列表呈现，简短精炼。
 
-            4. 层级平衡：每个分支建议 3-5 个子项，避免某一支过深或过浅。
+            【结构质量铁律——这是重点，决定是否清晰】
 
-            5. 全程使用中文，专有名词可保留原文。
+            1. 平衡：一级分支控制在 4-6 个；每个一级分支下的二级条目数量尽量相近（都在 3-5 个），不要某支特别多、某支只有一个。
 
-            6. 内容须基于下方搜索资料，去重并提炼，不要照抄整段。'
+            2. 同级同类：同一层级的条目必须是同一种逻辑类别。例如一级分支要么全是 “阶段/领域/人物/影响” 这类同维度的划分，不要把 “人物” 和
+            “年代” 混在同一层。
+
+            3. 粒度一致：同一层的条目详略相当，不要一个很长一个两个字。
+
+            4. 精炼：每个节点 2-10 个字，是名词短语或关键概念，不要写整句话、不要标点结尾。
+
+            5. MECE 原则：同级条目之间尽量不重叠、合在一起较完整。
+
+            6. 全程中文，专有名词可保留原文。基于下方资料提炼，不照抄整段。
+
+
+            【正确风格示例】
+
+            # 主题
+
+            ## 一级分支A
+
+            ### 二级条目1
+
+            ### 二级条目2
+
+            ### 二级条目3
+
+            ## 一级分支B
+
+            ### 二级条目1
+
+            ### 二级条目2
+
+            ### 二级条目3'
         - id: user-prompt
           role: user
           text: '主题：{{#1700000000001.topic#}}
@@ -248,7 +273,7 @@ workflow:
             {{#1700000000002.text#}}
 
 
-            请基于以上资料，围绕主题生成 Markdown 思维导图大纲。'
+            请基于资料，围绕主题生成一份结构平衡、内容精炼的 Markdown 思维导图大纲，严格遵守结构质量铁律。'
         selected: false
         title: 生成 Markdown 结构
         type: llm
@@ -258,12 +283,12 @@ workflow:
       height: 132
       id: '1700000000003'
       position:
-        x: 680
+        x: 678.5714285714287
         y: 282
       positionAbsolute:
-        x: 680
+        x: 678.5714285714287
         y: 282
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -273,7 +298,7 @@ workflow:
           \        {\"markdown\": md, \"title\": title},\n        ensure_ascii=False\n\
           \    )\n    return {\"body\": body}\n"
         code_language: python3
-        desc: 用 json.dumps 安全打包，避免中文/换行/引号破坏 JSON
+        desc: 用 json.dumps 安全打包
         outputs:
           body:
             children: null
@@ -290,7 +315,7 @@ workflow:
           - '1700000000001'
           - topic
           variable: title
-      height: 96
+      height: 80
       id: '1700000000007'
       position:
         x: 980
@@ -314,7 +339,7 @@ workflow:
             type: text
             value: '{{#1700000000007.body#}}'
           type: raw-text
-        desc: 把打包好的 JSON 发送到本地 markmap 服务
+        desc: 发送到本地 markmap 服务（host.docker.internal:5001）
         headers: Content-Type:application/json
         method: post
         params: ''
@@ -323,17 +348,16 @@ workflow:
           retry_enabled: true
           retry_interval: 100
         selected: false
-        ssl_verify: true
         timeout:
           connect: 10
           max_connect_timeout: 300
           max_read_timeout: 600
           max_write_timeout: 600
-          read: 120
+          read: 180
           write: 60
         title: 调用本地 markmap 服务
         type: http-request
-        url: http://192.168.1.139:5001/generate
+        url: http://host.docker.internal:5001/generate
         variables: []
       height: 181
       id: '1700000000004'
@@ -351,18 +375,22 @@ workflow:
     - data:
         code: "def main(http_body: str) -> dict:\n    import json\n    try:\n    \
           \    data = json.loads(http_body)\n    except Exception:\n        return\
-          \ {\n            \"view_url\": \"\",\n            \"file_path\": \"\",\n\
-          \            \"status\": \"解析失败：\" + str(http_body)[:300]\n        }\n \
-          \   return {\n        \"view_url\": data.get(\"view_url\", \"\"),\n    \
-          \    \"file_path\": data.get(\"file_path\", \"\"),\n        \"status\":\
-          \ data.get(\"status\", \"\")\n    }\n"
+          \ {\n            \"view_url\": \"\",\n            \"png_url\": \"\",\n \
+          \           \"svg_url\": \"\",\n            \"status\": \"解析失败：\" + str(http_body)[:300]\n\
+          \        }\n    return {\n        \"view_url\": data.get(\"view_url\", \"\
+          \"),\n        \"png_url\": data.get(\"png_url\", \"\"),\n        \"svg_url\"\
+          : data.get(\"svg_url\", \"\"),\n        \"status\": data.get(\"status\"\
+          , \"\")\n    }\n"
         code_language: python3
-        desc: 解析 Flask 返回的 JSON
+        desc: 解析 markmap 服务返回的 JSON
         outputs:
-          file_path:
+          png_url:
             children: null
             type: string
           status:
+            children: null
+            type: string
+          svg_url:
             children: null
             type: string
           view_url:
@@ -390,20 +418,20 @@ workflow:
       type: custom
       width: 242
     - data:
-        desc: 输出思维导图查看链接
+        desc: 输出 HTML 交互链接 + PNG 下载 + SVG 下载 + Markdown 源码
         outputs:
+        - value_selector:
+          - '1700000000005'
+          - png_url
+          variable: png_url
         - value_selector:
           - '1700000000005'
           - view_url
           variable: view_url
         - value_selector:
-          - '1700000000005'
-          - file_path
-          variable: file_path
-        - value_selector:
           - '1700000000003'
           - text
-          variable: markdown
+          variable: markdown_source
         - value_selector:
           - '1700000000005'
           - status
@@ -411,7 +439,7 @@ workflow:
         selected: false
         title: 结束
         type: end
-      height: 194
+      height: 210
       id: '1700000000006'
       position:
         x: 1880
@@ -419,13 +447,13 @@ workflow:
       positionAbsolute:
         x: 1880
         y: 282
-      selected: false
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 242
     viewport:
-      x: -840.7
-      y: 293.20000000000005
-      zoom: 0.7
+      x: 75.6050661855034
+      y: 304.2659355418772
+      zoom: 0.6558450128106977
   rag_pipeline_variables: []
