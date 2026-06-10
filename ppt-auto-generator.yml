@@ -1,0 +1,692 @@
+app:
+  description: 输入主题与关键词,自动生成大纲、AI配图并排版为可下载的PPTX
+  icon: 🎨
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: workflow
+  name: PPT自动生成工作流
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.8.4@23aed1fa4d2c8015337bd18efa28b3dccf5b7309a83b1501541fb7358518faec
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables:
+  - description: 本地
+    id: a63c1a40-6054-40a3-866c-126a03aaca92
+    name: PPTX_TOKEN
+    selector:
+    - env
+    - PPTX_TOKEN
+    value: ''
+    value_type: secret
+  - description: 云端
+    id: 57da53a3-20ca-48e1-b7e3-578974721b7c
+    name: PPTX_BASE
+    selector:
+    - env
+    - PPTX_BASE
+    value: http://host.docker.internal:8000
+    value_type: string
+  features:
+    file_upload:
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods: []
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: code
+        targetType: iteration
+      id: e-parse-iter
+      selected: false
+      source: code_parse
+      sourceHandle: source
+      target: iter_image
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: iteration
+        targetType: code
+      id: e-iter-merge
+      selected: false
+      source: iter_image
+      sourceHandle: source
+      target: code_merge
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: code
+        targetType: http-request
+      id: e-merge-http
+      selected: false
+      source: code_merge
+      sourceHandle: source
+      target: http_pptx
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: http-request
+        targetType: code
+      id: e-http-resp
+      selected: false
+      source: http_pptx
+      sourceHandle: source
+      target: code_resp
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: code
+        targetType: end
+      id: e-resp-end
+      selected: false
+      source: code_resp
+      sourceHandle: source
+      target: end_1
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: true
+        sourceType: http-request
+        targetType: code
+      id: e-iterhttp-iterparse
+      iteration_id: iter_image
+      selected: false
+      source: iter_http
+      sourceHandle: source
+      target: iter_parse
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: iter_image
+        sourceType: iteration-start
+        targetType: http-request
+      id: iter_imagestart0-source-iter_http-target
+      selected: false
+      source: iter_imagestart0
+      sourceHandle: source
+      target: iter_http
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1780842919749-source-code_parse-target
+      selected: false
+      source: '1780842919749'
+      sourceHandle: source
+      target: code_parse
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: document-extractor
+      id: start_1-source-1780894616914-target
+      selected: false
+      source: start_1
+      sourceHandle: source
+      target: '1780894616914'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: document-extractor
+        targetType: llm
+      id: 1780894616914-source-1780842919749-target
+      source: '1780894616914'
+      sourceHandle: source
+      target: '1780842919749'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: 用户输入主题、关键词、页数与风格
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - label: 主题
+          max_length: 256
+          options: []
+          required: true
+          type: text-input
+          variable: topic
+        - label: 关键词(逗号分隔)
+          max_length: 256
+          options: []
+          required: true
+          type: text-input
+          variable: keywords
+        - label: 页数
+          max_length: 48
+          options: []
+          required: false
+          type: number
+          variable: pages
+        - label: 风格
+          max_length: 48
+          options:
+          - 商务
+          - 简约
+          - 科技
+          - 活力
+          - 深蓝
+          - 紫韵
+          - 墨绿
+          - 红金
+          - 奶白
+          - 米黄
+          - 薄荷
+          - 雾蓝
+          - 粉笔
+          - 墨黑
+          - 摄影
+          - 哲学
+          required: false
+          type: select
+          variable: style
+        - allowed_file_extensions: []
+          allowed_file_types:
+          - document
+          allowed_file_upload_methods:
+          - local_file
+          - remote_url
+          default: ''
+          hide: false
+          hint: ''
+          label: 上传文档
+          max_length: 5
+          options: []
+          placeholder: ''
+          required: false
+          type: file-list
+          variable: doc_file
+        - allowed_file_extensions: []
+          allowed_file_types:
+          - image
+          allowed_file_upload_methods:
+          - local_file
+          - remote_url
+          default: ''
+          hide: false
+          hint: ''
+          label: 上传图片
+          max_length: 10
+          options: []
+          placeholder: ''
+          required: false
+          type: file-list
+          variable: img_file
+        - hint: ''
+          label: image_mode配图方式
+          options:
+          - AI配图
+          - 占位框
+          placeholder: ''
+          required: false
+          type: select
+          variable: image_mode
+      height: 293
+      id: start_1
+      position:
+        x: -166.73312743396502
+        y: 286.60213337890207
+      positionAbsolute:
+        x: -166.73312743396502
+        y: 286.60213337890207
+      selected: true
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\ndef main(llm_text: str) -> dict:\n    t = llm_text.strip()\n\
+          \    if t.startswith('```'):\n        t = t.split('```')[1].replace('json',\
+          \ '', 1).strip()\n    data = json.loads(t)\n    slides = data.get('slides',\
+          \ [])\n    prompts = [s.get('image_prompt', '') for s in slides if s.get('image_prompt',\
+          \ '').strip()]\n    return {\n        'title': data.get('title', ''),\n\
+          \        'subtitle': data.get('subtitle', ''),\n        'slides_json': json.dumps(slides,\
+          \ ensure_ascii=False),\n        'image_prompts': prompts,\n    }"
+        code_language: python3
+        desc: 解析JSON并提取生图提示词列表
+        outputs:
+          image_prompts:
+            type: array[string]
+          slides_json:
+            type: string
+          subtitle:
+            type: string
+          title:
+            type: string
+        selected: false
+        title: 代码-解析大纲
+        type: code
+        variables:
+        - value_selector:
+          - '1780842919749'
+          - text
+          value_type: string
+          variable: llm_text
+      height: 80
+      id: code_parse
+      position:
+        x: 611.288975715833
+        y: 322.0306051246999
+      positionAbsolute:
+        x: 611.288975715833
+        y: 322.0306051246999
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        desc: 对每个提示词调用硅基流动生图
+        error_handle_mode: continue-on-error
+        height: 270
+        is_parallel: false
+        iterator_selector:
+        - code_parse
+        - image_prompts
+        output_selector:
+        - iter_parse
+        - image_url
+        output_type: array[string]
+        parallel_nums: 10
+        selected: false
+        startNodeType: http-request
+        start_node_id: iter_imagestart0
+        title: 迭代-逐页生图
+        type: iteration
+        width: 558
+      height: 270
+      id: iter_image
+      position:
+        x: 877.7508938675146
+        y: 242.88256518577407
+      positionAbsolute:
+        x: 877.7508938675146
+        y: 242.88256518577407
+      selected: false
+      type: custom
+      width: 558
+    - data:
+        authorization:
+          config:
+            api_key: sk-uqkiuabhjxkeblshgyfmyweeigvcfmfouxwgtesltpovieht
+            type: bearer
+          type: api-key
+        body:
+          data:
+          - key: ''
+            type: text
+            value: "{\n  \"model\": \"Kwai-Kolors/Kolors\",\n  \"prompt\": \"{{#iter_image.item#}}\"\
+              ,\n  \"image_size\": \"1024x1024\",\n  \"batch_size\": 1\n}"
+          type: json
+        desc: 调用硅基流动文生图
+        headers: 'Content-Type: application/json'
+        isInIteration: true
+        iteration_id: iter_image
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 5
+          retry_enabled: true
+          retry_interval: 2605
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_connect_timeout: 10
+          max_read_timeout: 600
+          max_write_timeout: 600
+          read: 600
+          write: 600
+        title: HTTP-生图
+        type: http-request
+        url: https://api.siliconflow.cn/v1/images/generations
+        variables: []
+      extent: parent
+      height: 165
+      id: iter_http
+      parentId: iter_image
+      position:
+        x: 20
+        y: 78.85765130371544
+      positionAbsolute:
+        x: 897.7508938675146
+        y: 321.7402164894895
+      selected: false
+      type: custom
+      width: 242
+      zIndex: 1001
+    - data:
+        code: "import json\ndef main(resp: str) -> dict:\n    try:\n        obj =\
+          \ json.loads(resp)\n        arr = obj.get(\"images\") or obj.get(\"data\"\
+          ) or []\n        return {\"image_url\": arr[0][\"url\"] if arr else \"\"\
+          }\n    except Exception:\n        return {\"image_url\": \"\"}"
+        code_language: python3
+        desc: 从生图响应提取URL
+        isInIteration: true
+        iteration_id: iter_image
+        outputs:
+          image_url:
+            type: string
+        selected: false
+        title: 代码-取图URL
+        type: code
+        variables:
+        - value_selector:
+          - iter_http
+          - body
+          variable: resp
+      extent: parent
+      height: 80
+      id: iter_parse
+      parentId: iter_image
+      position:
+        x: 279.982204369958
+        y: 76.57295391114644
+      positionAbsolute:
+        x: 1157.7330982374726
+        y: 319.4555190969205
+      selected: false
+      type: custom
+      width: 242
+      zIndex: 1001
+    - data:
+        code: "import json\n\ndef main(slides_json: str, image_urls: list) -> dict:\n\
+          \    slides = json.loads(slides_json)\n    img_idx = 0\n    n_imgs = len(image_urls)\
+          \ if image_urls else 0\n    for s in slides:\n        prompt = (s.get('image_prompt')\
+          \ or '').strip()\n        need = s.get('need_image', True)\n        # 只有\"\
+          需要图且有生图提示词\"的页才分配一张图\n        if need and prompt and img_idx < n_imgs:\n\
+          \            s['image_url'] = image_urls[img_idx]\n            img_idx +=\
+          \ 1\n        else:\n            s['image_url'] = ''\n        s.pop('image_prompt',\
+          \ None)\n    return {'slides_final': json.dumps(slides, ensure_ascii=False)}"
+        code_language: python3
+        desc: 把图片URL合并回slides
+        outputs:
+          slides_final:
+            type: string
+        selected: false
+        title: 代码-合并图片
+        type: code
+        variables:
+        - value_selector:
+          - code_parse
+          - slides_json
+          variable: slides_json
+        - value_selector:
+          - iter_image
+          - output
+          variable: image_urls
+      height: 80
+      id: code_merge
+      position:
+        x: 1470.2989338966024
+        y: 429.0854026801506
+      positionAbsolute:
+        x: 1470.2989338966024
+        y: 429.0854026801506
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - key: ''
+            type: text
+            value: "{\n  \"title\": \"{{#code_parse.title#}}\",\n  \"subtitle\": \"\
+              {{#code_parse.subtitle#}}\",\n  \"style\": \"{{#start_1.style#}}\",\n\
+              \  \"slides\": {{#code_merge.slides_final#}}\n  \"image_mode\": {{#start_1.image_mode#}}\n\
+              }"
+          type: json
+        desc: 调用你的PPTX生成服务
+        headers: 'Content-Type:application/json
+
+          X-PPTX-Token:{{#env.PPTX_TOKEN#}}'
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_connect_timeout: 10
+          max_read_timeout: 600
+          max_write_timeout: 600
+          read: 600
+          write: 600
+        title: HTTP-生成PPTX
+        type: http-request
+        url: '{{#env.PPTX_BASE#}}/generate'
+        variables: []
+      height: 153
+      id: http_pptx
+      position:
+        x: 1744.0249138820584
+        y: 234.1814990823766
+      positionAbsolute:
+        x: 1744.0249138820584
+        y: 234.1814990823766
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        code: "import json\ndef main(resp: str) -> dict:\n    try:\n        obj =\
+          \ json.loads(resp)\n        return {'download_url': obj.get('url', ''),\
+          \ 'filename': obj.get('filename', '')}\n    except Exception:\n        return\
+          \ {'download_url': '', 'filename': ''}\n"
+        code_language: python3
+        desc: 提取下载链接
+        outputs:
+          download_url:
+            type: string
+          filename:
+            type: string
+        selected: false
+        title: 代码-取下载链接
+        type: code
+        variables:
+        - value_selector:
+          - http_pptx
+          - body
+          variable: resp
+      height: 80
+      id: code_resp
+      position:
+        x: 2045.167262578343
+        y: 429.0854026801506
+      positionAbsolute:
+        x: 2045.167262578343
+        y: 429.0854026801506
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        desc: 输出PPTX下载链接
+        outputs:
+        - value_selector:
+          - code_resp
+          - download_url
+          variable: download_url
+        - value_selector:
+          - code_resp
+          - filename
+          variable: filename
+        selected: false
+        title: 结束
+        type: end
+      height: 142
+      id: end_1
+      position:
+        x: 2317.7508938675146
+        y: 234.1814990823766
+      positionAbsolute:
+        x: 2317.7508938675146
+        y: 234.1814990823766
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        isInIteration: true
+        selected: false
+        title: ''
+        type: iteration-start
+      draggable: false
+      height: 48
+      id: iter_imagestart0
+      parentId: iter_image
+      position:
+        x: 24
+        y: 68
+      positionAbsolute:
+        x: 901.7508938675146
+        y: 310.88256518577407
+      selectable: false
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-iteration-start
+      width: 44
+      zIndex: 1002
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params: {}
+          mode: chat
+          name: gemini-2.5-flash
+          provider: langgenius/gemini/google
+        prompt_template:
+        - id: c03dc2cd-beb0-4db4-ab94-77a82d4df936
+          role: system
+          text: "你是专业的演示文稿策划。根据用户提供的信息，输出一份结构化大纲。\n严格只输出JSON，不要任何解释文字、不要markdown代码块标记。\n\
+            \n判断逻辑：\n- 如果提供了\"文档内容\"（非空），主要依据文档内容提炼大纲，主题和关键词作为辅助。\n- 如果用户上传了图片，识别图片中的文字和画面信息，作为生成大纲的重要素材。\n\
+            - 如果都没有，则依据主题和关键词生成。\n\n输出格式：\n{\n  \"title\": \"整体标题\",\n  \"subtitle\"\
+            : \"一句话副标题\",\n  \"slides\": [\n    {\n      \"title\": \"本页标题\",\n  \
+            \    \"bullets\": [\"要点1\",\"要点2\",\"要点3\"],\n      \"icons\": [\"图标名1\"\
+            ,\"图标名2\",\"图标名3\"],\n      \"need_image\": true,\n      \"image_prompt\"\
+            : \"英文生图提示词\",\n      \"chart\": null\n    }\n  ]\n}\n\n要求：\n- slides数量等于用户给的页数；每页bullets\
+            \ 3-4条。\n- icons数组与bullets一一对应，每条要点配一个最贴切的图标名，只能从下面列表里选：\n  activity,anchor,atom,award,baby,bar-chart-3,battery-charging,bell,binoculars,bird,book,book-open,box,brain,brain-circuit,building,calendar,clock,cloud,compass,cpu,crown,droplet,eye,feather,flag,flame,flower,footprints,gauge,gem,globe,graduation-cap,hammer,hand-heart,handshake,heart,hexagon,hourglass,infinity,key,landmark,layers,leaf,library,lightbulb,link,lock,magnet,map,map-pin,medal,milestone,moon,mountain,music,navigation,network,orbit,package,paintbrush,pen-tool,pie-chart,puzzle,recycle,refresh-cw,route,sailboat,scale,scroll,shield,shield-check,ship,sparkles,sprout,star,sun,sunrise,target,telescope,timer,trees,trending-down,trending-up,trophy,user,users,waves,wind,workflow,wrench,zap\n\
+            - need_image: 判断本页是否适合配一张大图。概述、场景、背景、趋势描述类页面适合配图（true）；纯列举、定义、对比、总结类页面不需要（false）。整份PPT配图页控制在40%-60%，不要每页都配图。\n\
+            - image_prompt 规则：\n  · 若\"配图方式\"是\"占位框\"，则所有页的 image_prompt 一律留空字符串 \"\
+            \"（用户会自己填图，不需要AI生图）；need_image 仍按上面正常判断。\n  · 若\"配图方式\"是\"AI配图\"或为空，则\
+            \ need_image 为 true 的页写英文生图提示词（具体、适合配图），need_image 为 false 的页 image_prompt\
+            \ 留空 \"\"。\n- chart：适合数据图表（趋势/对比/占比）的页填，否则为 null：\n  {\"type\":\"bar或line或pie\"\
+            ,\"categories\":[\"类别1\",\"类别2\"],\"series_names\":[\"系列名\"],\"series\"\
+            :[[数值1,数值2]]}\n  趋势用line，对比用bar，占比用pie。整套PPT图表页控制在1-2页。有chart的页 need_image\
+            \ 一律为 false。"
+        - id: 27a23741-f8b3-464b-8aa8-0721219f38e4
+          role: user
+          text: '主题: {{#start_1.topic#}}
+
+            关键词: {{#start_1.keywords#}}
+
+            风格: {{#start_1.style#}}
+
+            页数: {{#start_1.pages#}}
+
+            文档内容: {{#1780894616914.text#}}
+
+            配图方式: {{#start_1.image_mode#}}'
+        selected: false
+        title: 生成大纲
+        type: llm
+        vision:
+          configs:
+            detail: high
+            variable_selector:
+            - start_1
+            - img_file
+          enabled: true
+      height: 88
+      id: '1780842919749'
+      position:
+        x: 359.18324711293565
+        y: 212.53879146367996
+      positionAbsolute:
+        x: 359.18324711293565
+        y: 212.53879146367996
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        is_array_file: true
+        selected: false
+        title: 文档提取器
+        type: document-extractor
+        variable_selector:
+        - start_1
+        - doc_file
+      height: 104
+      id: '1780894616914'
+      position:
+        x: 103.5931761873751
+        y: 307.60213337890207
+      positionAbsolute:
+        x: 103.5931761873751
+        y: 307.60213337890207
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 362.41883129761254
+      y: 340.5928033859518
+      zoom: 0.6206378734738509
+  rag_pipeline_variables: []
